@@ -1,0 +1,39 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "adf-web-mini-project"
+		},
+		"LS_BLOB_CSV_connectionString": {
+			"value": ""
+		},
+		"LS_SQL_password": {
+			"value": ""
+		},
+		"LS_postgres_connectionString": {
+			"value": ""
+		},
+		"LS_sql_user_password": {
+			"value": ""
+		},
+		"LS_SQL_properties_typeProperties_server": {
+			"value": "assessment-server-1.database.windows.net"
+		},
+		"LS_SQL_properties_typeProperties_database": {
+			"value": "prasad-mysql"
+		},
+		"LS_SQL_properties_typeProperties_userName": {
+			"value": "prasad"
+		},
+		"LS_sql_user_properties_typeProperties_server": {
+			"value": "assessment-server-1.database.windows.net"
+		},
+		"LS_sql_user_properties_typeProperties_database": {
+			"value": "prasad-mysql"
+		},
+		"LS_sql_user_properties_typeProperties_userName": {
+			"value": "prasad"
+		}
+	}
+}

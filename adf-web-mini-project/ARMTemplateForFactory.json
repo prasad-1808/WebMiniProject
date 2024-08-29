@@ -1,0 +1,628 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "adf-web-mini-project"
+		},
+		"LS_BLOB_CSV_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_BLOB_CSV'"
+		},
+		"LS_SQL_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_SQL'"
+		},
+		"LS_postgres_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_postgres'"
+		},
+		"LS_sql_user_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_sql_user'"
+		},
+		"LS_SQL_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "assessment-server-1.database.windows.net"
+		},
+		"LS_SQL_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "prasad-mysql"
+		},
+		"LS_SQL_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "prasad"
+		},
+		"LS_sql_user_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "assessment-server-1.database.windows.net"
+		},
+		"LS_sql_user_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "prasad-mysql"
+		},
+		"LS_sql_user_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "prasad"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/Report Pipeline')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Report Data Flow",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "To merge user and expense",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"UserData": {},
+									"ExpenseData": {},
+									"MoveModifiedData": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/To merge user and expense')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/To move data from postgres to azure sql')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy Expense Data To sql",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzurePostgreSqlSource",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": {
+									"value": "DROP TABLE IF EXISTS stage.ExpenseTable;\n",
+									"type": "Expression"
+								},
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "id",
+											"type": "Int32",
+											"physicalType": "integer"
+										},
+										"sink": {
+											"name": "id",
+											"type": "Int32",
+											"physicalType": "int"
+										}
+									},
+									{
+										"source": {
+											"name": "userId",
+											"type": "String",
+											"physicalType": "text"
+										},
+										"sink": {
+											"name": "userId",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "category",
+											"type": "String",
+											"physicalType": "text"
+										},
+										"sink": {
+											"name": "category",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "amount",
+											"type": "Double",
+											"physicalType": "double precision"
+										},
+										"sink": {
+											"name": "amount",
+											"type": "Double",
+											"physicalType": "float"
+										}
+									},
+									{
+										"source": {
+											"name": "date",
+											"type": "DateTime",
+											"physicalType": "timestamp without time zone"
+										},
+										"sink": {
+											"name": "date",
+											"type": "DateTime",
+											"physicalType": "datetime2"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_postgres",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DS_sql",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Copy User Data To sql",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Copy Expense Data To sql",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzurePostgreSqlSource",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_postgres_user",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DS_sql_user",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2024-08-29T06:52:18Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_postgres')]",
+				"[concat(variables('factoryId'), '/datasets/DS_sql')]",
+				"[concat(variables('factoryId'), '/datasets/DS_postgres_user')]",
+				"[concat(variables('factoryId'), '/datasets/DS_sql_user')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_postgres')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_postgres",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzurePostgreSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "public",
+					"table": "Expense"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_postgres')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_postgres_user')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_postgres",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzurePostgreSqlTable",
+				"schema": [
+					{
+						"name": "id",
+						"type": "integer",
+						"precision": 0,
+						"scale": 0
+					},
+					{
+						"name": "userid",
+						"type": "text",
+						"precision": 0,
+						"scale": 0
+					},
+					{
+						"name": "name",
+						"type": "text",
+						"precision": 0,
+						"scale": 0
+					},
+					{
+						"name": "mobileNo",
+						"type": "text",
+						"precision": 0,
+						"scale": 0
+					},
+					{
+						"name": "age",
+						"type": "integer",
+						"precision": 0,
+						"scale": 0
+					},
+					{
+						"name": "monthlyRevenue",
+						"type": "double precision",
+						"precision": 0,
+						"scale": 0
+					},
+					{
+						"name": "password",
+						"type": "text",
+						"precision": 0,
+						"scale": 0
+					}
+				],
+				"typeProperties": {
+					"schema": "public",
+					"table": "User"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_postgres')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_sql')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_SQL",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "stage",
+					"table": "ExpenseTable"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_SQL')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_sql_user')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_sql_user",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "stage",
+					"table": "UserData"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_sql_user')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ModifiedSQL')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_SQL",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "report",
+					"table": "data"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_SQL')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_BLOB_CSV')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('LS_BLOB_CSV_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_SQL')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('LS_SQL_properties_typeProperties_server')]",
+					"database": "[parameters('LS_SQL_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('LS_SQL_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('LS_SQL_password')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_postgres')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzurePostgreSql",
+				"typeProperties": {
+					"connectionString": "[parameters('LS_postgres_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_sql_user')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('LS_sql_user_properties_typeProperties_server')]",
+					"database": "[parameters('LS_sql_user_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('LS_sql_user_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('LS_sql_user_password')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/integrationRuntime1')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/To merge user and expense')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DS_sql_user",
+								"type": "DatasetReference"
+							},
+							"name": "UserData"
+						},
+						{
+							"dataset": {
+								"referenceName": "DS_sql",
+								"type": "DatasetReference"
+							},
+							"name": "ExpenseData"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ModifiedSQL",
+								"type": "DatasetReference"
+							},
+							"name": "MoveModifiedData"
+						}
+					],
+					"transformations": [
+						{
+							"name": "UsersExpenseData"
+						},
+						{
+							"name": "SortedData"
+						},
+						{
+							"name": "SelectNeededData"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          id as integer,",
+						"          userid as string,",
+						"          name as string,",
+						"          mobileNo as string,",
+						"          age as integer,",
+						"          monthlyRevenue as double,",
+						"          password as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> UserData",
+						"source(output(",
+						"          id as integer,",
+						"          userId as string,",
+						"          category as string,",
+						"          amount as double,",
+						"          date as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> ExpenseData",
+						"UserData, ExpenseData join(UserData@userid == ExpenseData@userId,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> UsersExpenseData",
+						"UsersExpenseData sort(asc(UserData@id, true)) ~> SortedData",
+						"SortedData select(mapColumn(",
+						"          id = UserData@id,",
+						"          name,",
+						"          mobileNo,",
+						"          age,",
+						"          monthlyRevenue,",
+						"          id = ExpenseData@id,",
+						"          category,",
+						"          amount,",
+						"          date",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelectNeededData",
+						"SelectNeededData sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> MoveModifiedData"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_sql_user')]",
+				"[concat(variables('factoryId'), '/datasets/DS_sql')]",
+				"[concat(variables('factoryId'), '/datasets/ModifiedSQL')]"
+			]
+		}
+	]
+}
