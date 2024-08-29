@@ -1,0 +1,99 @@
+{
+	"name": "To merge user and expense",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_sql_user",
+						"type": "DatasetReference"
+					},
+					"name": "UserData"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_sql",
+						"type": "DatasetReference"
+					},
+					"name": "ExpenseData"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ModifiedSQL",
+						"type": "DatasetReference"
+					},
+					"name": "MoveModifiedData"
+				}
+			],
+			"transformations": [
+				{
+					"name": "UsersExpenseData"
+				},
+				{
+					"name": "SortedData"
+				},
+				{
+					"name": "SelectNeededData"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          userid as string,",
+				"          name as string,",
+				"          mobileNo as string,",
+				"          age as integer,",
+				"          monthlyRevenue as double,",
+				"          password as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> UserData",
+				"source(output(",
+				"          id as integer,",
+				"          userId as string,",
+				"          category as string,",
+				"          amount as double,",
+				"          date as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> ExpenseData",
+				"UserData, ExpenseData join(UserData@userid == ExpenseData@userId,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> UsersExpenseData",
+				"UsersExpenseData sort(asc(UserData@id, true)) ~> SortedData",
+				"SortedData select(mapColumn(",
+				"          id = UserData@id,",
+				"          name,",
+				"          mobileNo,",
+				"          age,",
+				"          monthlyRevenue,",
+				"          id = ExpenseData@id,",
+				"          category,",
+				"          amount,",
+				"          date",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelectNeededData",
+				"SelectNeededData sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> MoveModifiedData"
+			]
+		}
+	}
+}
