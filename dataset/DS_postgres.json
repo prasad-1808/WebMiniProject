@@ -1,0 +1,17 @@
+{
+	"name": "DS_postgres",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_postgres",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzurePostgreSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "public",
+			"table": "Expense"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

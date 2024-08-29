@@ -1,0 +1,17 @@
+{
+	"name": "DS_sql",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_SQL",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "stage",
+			"table": "ExpenseTable"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

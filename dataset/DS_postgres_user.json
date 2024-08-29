@@ -1,0 +1,60 @@
+{
+	"name": "DS_postgres_user",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_postgres",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzurePostgreSqlTable",
+		"schema": [
+			{
+				"name": "id",
+				"type": "integer",
+				"precision": 0,
+				"scale": 0
+			},
+			{
+				"name": "userid",
+				"type": "text",
+				"precision": 0,
+				"scale": 0
+			},
+			{
+				"name": "name",
+				"type": "text",
+				"precision": 0,
+				"scale": 0
+			},
+			{
+				"name": "mobileNo",
+				"type": "text",
+				"precision": 0,
+				"scale": 0
+			},
+			{
+				"name": "age",
+				"type": "integer",
+				"precision": 0,
+				"scale": 0
+			},
+			{
+				"name": "monthlyRevenue",
+				"type": "double precision",
+				"precision": 0,
+				"scale": 0
+			},
+			{
+				"name": "password",
+				"type": "text",
+				"precision": 0,
+				"scale": 0
+			}
+		],
+		"typeProperties": {
+			"schema": "public",
+			"table": "User"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
