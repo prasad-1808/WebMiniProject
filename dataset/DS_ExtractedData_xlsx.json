@@ -1,0 +1,21 @@
+{
+	"name": "DS_ExtractedData_xlsx",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_extracted_data_xlsx",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Excel",
+		"typeProperties": {
+			"sheetName": "sheet1",
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "data.xlsx",
+				"container": "input-container"
+			},
+			"firstRowAsHeader": true
+		},
+		"schema": []
+	}
+}

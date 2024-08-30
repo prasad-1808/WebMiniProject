@@ -1,0 +1,16 @@
+{
+	"name": "DS_extracted_data_sql",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_extracted_data_sql",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "raw",
+			"table": "products"
+		}
+	}
+}

@@ -1,0 +1,16 @@
+{
+	"name": "DS_extracted_data_to_prep_sql",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_prep_extracted_data",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "prep",
+			"table": "data"
+		}
+	}
+}
