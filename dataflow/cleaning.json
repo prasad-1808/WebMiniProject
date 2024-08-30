@@ -1,5 +1,5 @@
 {
-	"name": "dataflow1",
+	"name": "cleaning",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
@@ -23,13 +23,13 @@
 			],
 			"transformations": [
 				{
-					"name": "window1"
+					"name": "CategoriesDuplicates"
 				},
 				{
-					"name": "filter1"
+					"name": "FilterDuplicates"
 				},
 				{
-					"name": "select1"
+					"name": "SelectRequiredColumns"
 				}
 			],
 			"scriptLines": [
@@ -72,9 +72,9 @@
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> RawProductData",
 				"RawProductData window(asc(seriesCode, true),",
-				"     duplicate = iif(lag(seriesCode)==seriesCode, true(), false())) ~> window1",
-				"window1 filter(!duplicate) ~> filter1",
-				"filter1 select(mapColumn(",
+				"     duplicate = iif(lag(seriesCode)==seriesCode, true(), false())) ~> CategoriesDuplicates",
+				"CategoriesDuplicates filter(!duplicate) ~> FilterDuplicates",
+				"FilterDuplicates select(mapColumn(",
 				"          category,",
 				"          subCategory,",
 				"          subCategory1,",
@@ -104,12 +104,11 @@
 				"          discontinuedProductFlag,",
 				"          promptDeliveryFlag,",
 				"          keywordClickCount,",
-				"          specialShipmentFlag,",
-				"          recommendFlagdata",
+				"          specialShipmentFlag",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select1",
-				"select1 sink(allowSchemaDrift: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelectRequiredColumns",
+				"SelectRequiredColumns sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
 				"     insertable:true,",
