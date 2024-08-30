@@ -15,9 +15,25 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'LS_SQL'"
 		},
+		"LS_extracted_data_csv_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_extracted_data_csv'"
+		},
+		"LS_extracted_data_sql_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_extracted_data_sql'"
+		},
+		"LS_extracted_data_xlsx_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_extracted_data_xlsx'"
+		},
 		"LS_postgres_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'LS_postgres'"
+		},
+		"LS_prep_extracted_data_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_prep_extracted_data'"
 		},
 		"LS_sql_user_password": {
 			"type": "secureString",
@@ -32,6 +48,30 @@
 			"defaultValue": "prasad-mysql"
 		},
 		"LS_SQL_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "prasad"
+		},
+		"LS_extracted_data_sql_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "assessment-server-1.database.windows.net"
+		},
+		"LS_extracted_data_sql_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "prasad-mysql"
+		},
+		"LS_extracted_data_sql_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "prasad"
+		},
+		"LS_prep_extracted_data_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "assessment-server-1.database.windows.net"
+		},
+		"LS_prep_extracted_data_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "prasad-mysql"
+		},
+		"LS_prep_extracted_data_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "prasad"
 		},
@@ -80,8 +120,20 @@
 					"LS_SQL_password": {
 						"value": "[parameters('LS_SQL_password')]"
 					},
+					"LS_extracted_data_csv_connectionString": {
+						"value": "[parameters('LS_extracted_data_csv_connectionString')]"
+					},
+					"LS_extracted_data_sql_password": {
+						"value": "[parameters('LS_extracted_data_sql_password')]"
+					},
+					"LS_extracted_data_xlsx_connectionString": {
+						"value": "[parameters('LS_extracted_data_xlsx_connectionString')]"
+					},
 					"LS_postgres_connectionString": {
 						"value": "[parameters('LS_postgres_connectionString')]"
+					},
+					"LS_prep_extracted_data_password": {
+						"value": "[parameters('LS_prep_extracted_data_password')]"
 					},
 					"LS_sql_user_password": {
 						"value": "[parameters('LS_sql_user_password')]"
@@ -95,6 +147,24 @@
 					"LS_SQL_properties_typeProperties_userName": {
 						"value": "[parameters('LS_SQL_properties_typeProperties_userName')]"
 					},
+					"LS_extracted_data_sql_properties_typeProperties_server": {
+						"value": "[parameters('LS_extracted_data_sql_properties_typeProperties_server')]"
+					},
+					"LS_extracted_data_sql_properties_typeProperties_database": {
+						"value": "[parameters('LS_extracted_data_sql_properties_typeProperties_database')]"
+					},
+					"LS_extracted_data_sql_properties_typeProperties_userName": {
+						"value": "[parameters('LS_extracted_data_sql_properties_typeProperties_userName')]"
+					},
+					"LS_prep_extracted_data_properties_typeProperties_server": {
+						"value": "[parameters('LS_prep_extracted_data_properties_typeProperties_server')]"
+					},
+					"LS_prep_extracted_data_properties_typeProperties_database": {
+						"value": "[parameters('LS_prep_extracted_data_properties_typeProperties_database')]"
+					},
+					"LS_prep_extracted_data_properties_typeProperties_userName": {
+						"value": "[parameters('LS_prep_extracted_data_properties_typeProperties_userName')]"
+					},
 					"LS_sql_user_properties_typeProperties_server": {
 						"value": "[parameters('LS_sql_user_properties_typeProperties_server')]"
 					},
@@ -107,6 +177,26 @@
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "adf-web-mini-project_ArmTemplate_1",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_1.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'adf-web-mini-project_ArmTemplate_0')]"
+			]
 		}
 	]
 }

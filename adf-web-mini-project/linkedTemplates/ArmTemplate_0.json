@@ -15,9 +15,25 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'LS_SQL'"
 		},
+		"LS_extracted_data_csv_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_extracted_data_csv'"
+		},
+		"LS_extracted_data_sql_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_extracted_data_sql'"
+		},
+		"LS_extracted_data_xlsx_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_extracted_data_xlsx'"
+		},
 		"LS_postgres_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'LS_postgres'"
+		},
+		"LS_prep_extracted_data_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_prep_extracted_data'"
 		},
 		"LS_sql_user_password": {
 			"type": "secureString",
@@ -32,6 +48,30 @@
 			"defaultValue": "prasad-mysql"
 		},
 		"LS_SQL_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "prasad"
+		},
+		"LS_extracted_data_sql_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "assessment-server-1.database.windows.net"
+		},
+		"LS_extracted_data_sql_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "prasad-mysql"
+		},
+		"LS_extracted_data_sql_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "prasad"
+		},
+		"LS_prep_extracted_data_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "assessment-server-1.database.windows.net"
+		},
+		"LS_prep_extracted_data_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "prasad-mysql"
+		},
+		"LS_prep_extracted_data_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "prasad"
 		},
@@ -88,6 +128,54 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/LS_extracted_data_csv')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('LS_extracted_data_csv_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_extracted_data_sql')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('LS_extracted_data_sql_properties_typeProperties_server')]",
+					"database": "[parameters('LS_extracted_data_sql_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('LS_extracted_data_sql_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('LS_extracted_data_sql_password')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_extracted_data_xlsx')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('LS_extracted_data_xlsx_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/LS_postgres')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -96,6 +184,28 @@
 				"type": "AzurePostgreSql",
 				"typeProperties": {
 					"connectionString": "[parameters('LS_postgres_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_prep_extracted_data')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('LS_prep_extracted_data_properties_typeProperties_server')]",
+					"database": "[parameters('LS_prep_extracted_data_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('LS_prep_extracted_data_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('LS_prep_extracted_data_password')]"
+					}
 				}
 			},
 			"dependsOn": []
@@ -133,6 +243,259 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/DS_ExtractedData_xlsx')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_extracted_data_xlsx",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "misumi"
+				},
+				"annotations": [],
+				"type": "Excel",
+				"typeProperties": {
+					"sheetName": "sheet1",
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "data.xlsx",
+						"container": "input-container"
+					},
+					"firstRowAsHeader": true
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_extracted_data_xlsx')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_extractedData_report')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_extracted_data_sql",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "misumi"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "category",
+						"type": "nvarchar"
+					},
+					{
+						"name": "subCategory",
+						"type": "nvarchar"
+					},
+					{
+						"name": "subCategory1",
+						"type": "nvarchar"
+					},
+					{
+						"name": "departmentCode",
+						"type": "nvarchar"
+					},
+					{
+						"name": "categoryCode",
+						"type": "nvarchar"
+					},
+					{
+						"name": "categoryName",
+						"type": "nvarchar"
+					},
+					{
+						"name": "searchCategoryCode",
+						"type": "nvarchar"
+					},
+					{
+						"name": "seriesCode",
+						"type": "nvarchar"
+					},
+					{
+						"name": "seriesName",
+						"type": "nvarchar"
+					},
+					{
+						"name": "brandCode",
+						"type": "nvarchar"
+					},
+					{
+						"name": "brandUrlCode",
+						"type": "nvarchar"
+					},
+					{
+						"name": "brandName",
+						"type": "nvarchar"
+					},
+					{
+						"name": "seriesStatus",
+						"type": "nvarchar"
+					},
+					{
+						"name": "minStandardDaysToShip",
+						"type": "nvarchar"
+					},
+					{
+						"name": "maxStandardDaysToShip",
+						"type": "nvarchar"
+					},
+					{
+						"name": "minPricePerPiece",
+						"type": "nvarchar"
+					},
+					{
+						"name": "maxPricePerPiece",
+						"type": "nvarchar"
+					},
+					{
+						"name": "directCartType",
+						"type": "nvarchar"
+					},
+					{
+						"name": "priceCheckLessFlag",
+						"type": "nvarchar"
+					},
+					{
+						"name": "minStandardUnitPrice",
+						"type": "nvarchar"
+					},
+					{
+						"name": "maxStandardUnitPrice",
+						"type": "nvarchar"
+					},
+					{
+						"name": "recommendFlag",
+						"type": "nvarchar"
+					},
+					{
+						"name": "volumeDiscountFlag",
+						"type": "nvarchar"
+					},
+					{
+						"name": "cValueFlag",
+						"type": "nvarchar"
+					},
+					{
+						"name": "stockItemFlag",
+						"type": "nvarchar"
+					},
+					{
+						"name": "displayStandardPriceFlag",
+						"type": "nvarchar"
+					},
+					{
+						"name": "discontinuedProductFlag",
+						"type": "nvarchar"
+					},
+					{
+						"name": "promptDeliveryFlag",
+						"type": "nvarchar"
+					},
+					{
+						"name": "keywordClickCount",
+						"type": "nvarchar"
+					},
+					{
+						"name": "specialShipmentFlag",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "report",
+					"table": "products"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_extracted_data_sql')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_extracted_data_csv')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_extracted_data_csv",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "misumi"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "extracted_data.csv",
+						"container": "bronze-level"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_extracted_data_csv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_extracted_data_sql')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_extracted_data_sql",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "SQL"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "raw",
+					"table": "products"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_extracted_data_sql')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_extracted_data_to_prep_sql')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_prep_extracted_data",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "SQL"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "prep",
+					"table": "products"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_prep_extracted_data')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DS_postgres')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -140,6 +503,9 @@
 				"linkedServiceName": {
 					"referenceName": "LS_postgres",
 					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Postgres"
 				},
 				"annotations": [],
 				"type": "AzurePostgreSqlTable",
@@ -161,6 +527,9 @@
 				"linkedServiceName": {
 					"referenceName": "LS_postgres",
 					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Postgres"
 				},
 				"annotations": [],
 				"type": "AzurePostgreSqlTable",
@@ -226,6 +595,9 @@
 					"referenceName": "LS_SQL",
 					"type": "LinkedServiceReference"
 				},
+				"folder": {
+					"name": "SQL"
+				},
 				"annotations": [],
 				"type": "AzureSqlTable",
 				"schema": [],
@@ -247,6 +619,9 @@
 					"referenceName": "LS_sql_user",
 					"type": "LinkedServiceReference"
 				},
+				"folder": {
+					"name": "SQL"
+				},
 				"annotations": [],
 				"type": "AzureSqlTable",
 				"schema": [],
@@ -267,6 +642,9 @@
 				"linkedServiceName": {
 					"referenceName": "LS_SQL",
 					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "SQL"
 				},
 				"annotations": [],
 				"type": "AzureSqlTable",
@@ -462,6 +840,9 @@
 				"policy": {
 					"elapsedTimeMetric": {}
 				},
+				"folder": {
+					"name": "Task1"
+				},
 				"annotations": [],
 				"lastPublishTime": "2024-08-29T06:52:18Z"
 			},
@@ -470,159 +851,6 @@
 				"[concat(variables('factoryId'), '/datasets/DS_sql')]",
 				"[concat(variables('factoryId'), '/datasets/DS_postgres_user')]",
 				"[concat(variables('factoryId'), '/datasets/DS_sql_user')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/To merge user and expense')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "DS_sql_user",
-								"type": "DatasetReference"
-							},
-							"name": "UserData"
-						},
-						{
-							"dataset": {
-								"referenceName": "DS_sql",
-								"type": "DatasetReference"
-							},
-							"name": "ExpenseData"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "ModifiedSQL",
-								"type": "DatasetReference"
-							},
-							"name": "MoveModifiedData"
-						}
-					],
-					"transformations": [
-						{
-							"name": "UsersExpenseData"
-						},
-						{
-							"name": "SortedData"
-						},
-						{
-							"name": "SelectNeededData"
-						}
-					],
-					"scriptLines": [
-						"source(output(",
-						"          id as integer,",
-						"          userid as string,",
-						"          name as string,",
-						"          mobileNo as string,",
-						"          age as integer,",
-						"          monthlyRevenue as double,",
-						"          password as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     isolationLevel: 'READ_UNCOMMITTED',",
-						"     format: 'table') ~> UserData",
-						"source(output(",
-						"          id as integer,",
-						"          userId as string,",
-						"          category as string,",
-						"          amount as double,",
-						"          date as date",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     isolationLevel: 'READ_UNCOMMITTED',",
-						"     format: 'table') ~> ExpenseData",
-						"UserData, ExpenseData join(UserData@userid == ExpenseData@userId,",
-						"     joinType:'inner',",
-						"     matchType:'exact',",
-						"     ignoreSpaces: false,",
-						"     broadcast: 'auto')~> UsersExpenseData",
-						"UsersExpenseData sort(asc(UserData@id, true)) ~> SortedData",
-						"SortedData select(mapColumn(",
-						"          id = UserData@id,",
-						"          name,",
-						"          mobileNo,",
-						"          age,",
-						"          monthlyRevenue,",
-						"          id = ExpenseData@id,",
-						"          category,",
-						"          amount,",
-						"          date",
-						"     ),",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> SelectNeededData",
-						"SelectNeededData sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     deletable:false,",
-						"     insertable:true,",
-						"     updateable:false,",
-						"     upsertable:false,",
-						"     format: 'table',",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError') ~> MoveModifiedData"
-					]
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/DS_sql_user')]",
-				"[concat(variables('factoryId'), '/datasets/DS_sql')]",
-				"[concat(variables('factoryId'), '/datasets/ModifiedSQL')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Report Pipeline')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Report Data Flow",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "To merge user and expense",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"UserData": {},
-									"ExpenseData": {},
-									"MoveModifiedData": {}
-								}
-							},
-							"staging": {},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							},
-							"traceLevel": "Fine"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/To merge user and expense')]"
 			]
 		}
 	]

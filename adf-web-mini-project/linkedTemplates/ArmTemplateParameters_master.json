@@ -11,7 +11,19 @@
 		"LS_SQL_password": {
 			"value": ""
 		},
+		"LS_extracted_data_csv_connectionString": {
+			"value": ""
+		},
+		"LS_extracted_data_sql_password": {
+			"value": ""
+		},
+		"LS_extracted_data_xlsx_connectionString": {
+			"value": ""
+		},
 		"LS_postgres_connectionString": {
+			"value": ""
+		},
+		"LS_prep_extracted_data_password": {
 			"value": ""
 		},
 		"LS_sql_user_password": {
@@ -24,6 +36,24 @@
 			"value": "prasad-mysql"
 		},
 		"LS_SQL_properties_typeProperties_userName": {
+			"value": "prasad"
+		},
+		"LS_extracted_data_sql_properties_typeProperties_server": {
+			"value": "assessment-server-1.database.windows.net"
+		},
+		"LS_extracted_data_sql_properties_typeProperties_database": {
+			"value": "prasad-mysql"
+		},
+		"LS_extracted_data_sql_properties_typeProperties_userName": {
+			"value": "prasad"
+		},
+		"LS_prep_extracted_data_properties_typeProperties_server": {
+			"value": "assessment-server-1.database.windows.net"
+		},
+		"LS_prep_extracted_data_properties_typeProperties_database": {
+			"value": "prasad-mysql"
+		},
+		"LS_prep_extracted_data_properties_typeProperties_userName": {
 			"value": "prasad"
 		},
 		"LS_sql_user_properties_typeProperties_server": {

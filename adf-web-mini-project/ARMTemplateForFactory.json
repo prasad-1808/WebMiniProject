@@ -15,9 +15,25 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'LS_SQL'"
 		},
+		"LS_extracted_data_csv_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_extracted_data_csv'"
+		},
+		"LS_extracted_data_sql_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_extracted_data_sql'"
+		},
+		"LS_extracted_data_xlsx_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_extracted_data_xlsx'"
+		},
 		"LS_postgres_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'LS_postgres'"
+		},
+		"LS_prep_extracted_data_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_prep_extracted_data'"
 		},
 		"LS_sql_user_password": {
 			"type": "secureString",
@@ -32,6 +48,30 @@
 			"defaultValue": "prasad-mysql"
 		},
 		"LS_SQL_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "prasad"
+		},
+		"LS_extracted_data_sql_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "assessment-server-1.database.windows.net"
+		},
+		"LS_extracted_data_sql_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "prasad-mysql"
+		},
+		"LS_extracted_data_sql_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "prasad"
+		},
+		"LS_prep_extracted_data_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "assessment-server-1.database.windows.net"
+		},
+		"LS_prep_extracted_data_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "prasad-mysql"
+		},
+		"LS_prep_extracted_data_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "prasad"
 		},
@@ -52,6 +92,254 @@
 		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/ProcessingExtractedData')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy Extracted Data",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ExcelSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"wildcardFileName": "*.xlsx",
+									"enablePartitionDiscovery": false
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings",
+									"copyBehavior": "MergeFiles"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_ExtractedData_xlsx",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DS_extracted_data_csv",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Copy Extracted Data to sql",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ExcelSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_ExtractedData_xlsx",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DS_extracted_data_sql",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Cleaning",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "Copy Extracted Data to sql",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "cleaning",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"RawProductData": {},
+									"MoveToPrep": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "Extraction script",
+						"type": "DatabricksNotebook",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {}
+					},
+					{
+						"name": "Move Data To Report",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Cleaning",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_extracted_data_to_prep_sql",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DS_extractedData_report",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "Task1"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_ExtractedData_xlsx')]",
+				"[concat(variables('factoryId'), '/datasets/DS_extracted_data_csv')]",
+				"[concat(variables('factoryId'), '/datasets/DS_extracted_data_sql')]",
+				"[concat(variables('factoryId'), '/dataflows/cleaning')]",
+				"[concat(variables('factoryId'), '/datasets/DS_extracted_data_to_prep_sql')]",
+				"[concat(variables('factoryId'), '/datasets/DS_extractedData_report')]"
+			]
+		},
 		{
 			"name": "[concat(parameters('factoryName'), '/Report Pipeline')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
@@ -92,6 +380,9 @@
 				],
 				"policy": {
 					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "Task1"
 				},
 				"annotations": []
 			},
@@ -281,6 +572,9 @@
 				"policy": {
 					"elapsedTimeMetric": {}
 				},
+				"folder": {
+					"name": "Task1"
+				},
 				"annotations": [],
 				"lastPublishTime": "2024-08-29T06:52:18Z"
 			},
@@ -292,6 +586,259 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/DS_ExtractedData_xlsx')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_extracted_data_xlsx",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "misumi"
+				},
+				"annotations": [],
+				"type": "Excel",
+				"typeProperties": {
+					"sheetName": "sheet1",
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "data.xlsx",
+						"container": "input-container"
+					},
+					"firstRowAsHeader": true
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_extracted_data_xlsx')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_extractedData_report')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_extracted_data_sql",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "misumi"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "category",
+						"type": "nvarchar"
+					},
+					{
+						"name": "subCategory",
+						"type": "nvarchar"
+					},
+					{
+						"name": "subCategory1",
+						"type": "nvarchar"
+					},
+					{
+						"name": "departmentCode",
+						"type": "nvarchar"
+					},
+					{
+						"name": "categoryCode",
+						"type": "nvarchar"
+					},
+					{
+						"name": "categoryName",
+						"type": "nvarchar"
+					},
+					{
+						"name": "searchCategoryCode",
+						"type": "nvarchar"
+					},
+					{
+						"name": "seriesCode",
+						"type": "nvarchar"
+					},
+					{
+						"name": "seriesName",
+						"type": "nvarchar"
+					},
+					{
+						"name": "brandCode",
+						"type": "nvarchar"
+					},
+					{
+						"name": "brandUrlCode",
+						"type": "nvarchar"
+					},
+					{
+						"name": "brandName",
+						"type": "nvarchar"
+					},
+					{
+						"name": "seriesStatus",
+						"type": "nvarchar"
+					},
+					{
+						"name": "minStandardDaysToShip",
+						"type": "nvarchar"
+					},
+					{
+						"name": "maxStandardDaysToShip",
+						"type": "nvarchar"
+					},
+					{
+						"name": "minPricePerPiece",
+						"type": "nvarchar"
+					},
+					{
+						"name": "maxPricePerPiece",
+						"type": "nvarchar"
+					},
+					{
+						"name": "directCartType",
+						"type": "nvarchar"
+					},
+					{
+						"name": "priceCheckLessFlag",
+						"type": "nvarchar"
+					},
+					{
+						"name": "minStandardUnitPrice",
+						"type": "nvarchar"
+					},
+					{
+						"name": "maxStandardUnitPrice",
+						"type": "nvarchar"
+					},
+					{
+						"name": "recommendFlag",
+						"type": "nvarchar"
+					},
+					{
+						"name": "volumeDiscountFlag",
+						"type": "nvarchar"
+					},
+					{
+						"name": "cValueFlag",
+						"type": "nvarchar"
+					},
+					{
+						"name": "stockItemFlag",
+						"type": "nvarchar"
+					},
+					{
+						"name": "displayStandardPriceFlag",
+						"type": "nvarchar"
+					},
+					{
+						"name": "discontinuedProductFlag",
+						"type": "nvarchar"
+					},
+					{
+						"name": "promptDeliveryFlag",
+						"type": "nvarchar"
+					},
+					{
+						"name": "keywordClickCount",
+						"type": "nvarchar"
+					},
+					{
+						"name": "specialShipmentFlag",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "report",
+					"table": "products"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_extracted_data_sql')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_extracted_data_csv')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_extracted_data_csv",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "misumi"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "extracted_data.csv",
+						"container": "bronze-level"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_extracted_data_csv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_extracted_data_sql')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_extracted_data_sql",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "SQL"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "raw",
+					"table": "products"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_extracted_data_sql')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_extracted_data_to_prep_sql')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_prep_extracted_data",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "SQL"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "prep",
+					"table": "products"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_prep_extracted_data')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DS_postgres')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -299,6 +846,9 @@
 				"linkedServiceName": {
 					"referenceName": "LS_postgres",
 					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Postgres"
 				},
 				"annotations": [],
 				"type": "AzurePostgreSqlTable",
@@ -320,6 +870,9 @@
 				"linkedServiceName": {
 					"referenceName": "LS_postgres",
 					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Postgres"
 				},
 				"annotations": [],
 				"type": "AzurePostgreSqlTable",
@@ -385,6 +938,9 @@
 					"referenceName": "LS_SQL",
 					"type": "LinkedServiceReference"
 				},
+				"folder": {
+					"name": "SQL"
+				},
 				"annotations": [],
 				"type": "AzureSqlTable",
 				"schema": [],
@@ -406,6 +962,9 @@
 					"referenceName": "LS_sql_user",
 					"type": "LinkedServiceReference"
 				},
+				"folder": {
+					"name": "SQL"
+				},
 				"annotations": [],
 				"type": "AzureSqlTable",
 				"schema": [],
@@ -426,6 +985,9 @@
 				"linkedServiceName": {
 					"referenceName": "LS_SQL",
 					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "SQL"
 				},
 				"annotations": [],
 				"type": "AzureSqlTable",
@@ -475,6 +1037,54 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/LS_extracted_data_csv')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('LS_extracted_data_csv_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_extracted_data_sql')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('LS_extracted_data_sql_properties_typeProperties_server')]",
+					"database": "[parameters('LS_extracted_data_sql_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('LS_extracted_data_sql_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('LS_extracted_data_sql_password')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_extracted_data_xlsx')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('LS_extracted_data_xlsx_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/LS_postgres')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -483,6 +1093,28 @@
 				"type": "AzurePostgreSql",
 				"typeProperties": {
 					"connectionString": "[parameters('LS_postgres_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_prep_extracted_data')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('LS_prep_extracted_data_properties_typeProperties_server')]",
+					"database": "[parameters('LS_prep_extracted_data_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('LS_prep_extracted_data_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('LS_prep_extracted_data_password')]"
+					}
 				}
 			},
 			"dependsOn": []
@@ -612,6 +1244,7 @@
 						"     insertable:true,",
 						"     updateable:false,",
 						"     upsertable:false,",
+						"     recreate:true,",
 						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
@@ -623,6 +1256,136 @@
 				"[concat(variables('factoryId'), '/datasets/DS_sql_user')]",
 				"[concat(variables('factoryId'), '/datasets/DS_sql')]",
 				"[concat(variables('factoryId'), '/datasets/ModifiedSQL')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/cleaning')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DS_extracted_data_sql",
+								"type": "DatasetReference"
+							},
+							"name": "RawProductData"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DS_extracted_data_to_prep_sql",
+								"type": "DatasetReference"
+							},
+							"name": "MoveToPrep"
+						}
+					],
+					"transformations": [
+						{
+							"name": "CategoriesDuplicates"
+						},
+						{
+							"name": "FilterDuplicates"
+						},
+						{
+							"name": "SelectRequiredColumns"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          category as string,",
+						"          subCategory as string,",
+						"          subCategory1 as string,",
+						"          departmentCode as string,",
+						"          categoryCode as string,",
+						"          categoryName as string,",
+						"          searchCategoryCode as string,",
+						"          seriesCode as string,",
+						"          seriesName as string,",
+						"          brandCode as string,",
+						"          brandUrlCode as string,",
+						"          brandName as string,",
+						"          seriesStatus as integer,",
+						"          minStandardDaysToShip as string,",
+						"          maxStandardDaysToShip as string,",
+						"          minPricePerPiece as string,",
+						"          maxPricePerPiece as string,",
+						"          directCartType as string,",
+						"          priceCheckLessFlag as string,",
+						"          minStandardUnitPrice as float,",
+						"          maxStandardUnitPrice as float,",
+						"          recommendFlag as string,",
+						"          iconTypeList as string,",
+						"          volumeDiscountFlag as string,",
+						"          cValueFlag as string,",
+						"          stockItemFlag as string,",
+						"          displayStandardPriceFlag as string,",
+						"          discontinuedProductFlag as string,",
+						"          promptDeliveryFlag as string,",
+						"          keywordClickCount as string,",
+						"          specialShipmentFlag as string,",
+						"          recommendFlagdata as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> RawProductData",
+						"RawProductData window(asc(seriesCode, true),",
+						"     duplicate = iif(lag(seriesCode)==seriesCode, true(), false())) ~> CategoriesDuplicates",
+						"CategoriesDuplicates filter(!duplicate) ~> FilterDuplicates",
+						"FilterDuplicates select(mapColumn(",
+						"          departmentCode,",
+						"          category,",
+						"          subCategory,",
+						"          subCategory1,",
+						"          categoryCode,",
+						"          categoryName,",
+						"          searchCategoryCode,",
+						"          seriesCode,",
+						"          seriesName,",
+						"          brandCode,",
+						"          brandUrlCode,",
+						"          brandName,",
+						"          seriesStatus,",
+						"          minStandardDaysToShip,",
+						"          maxStandardDaysToShip,",
+						"          minPricePerPiece,",
+						"          maxPricePerPiece,",
+						"          directCartType,",
+						"          priceCheckLessFlag,",
+						"          minStandardUnitPrice,",
+						"          maxStandardUnitPrice,",
+						"          recommendFlag,",
+						"          volumeDiscountFlag,",
+						"          cValueFlag,",
+						"          stockItemFlag,",
+						"          displayStandardPriceFlag,",
+						"          discontinuedProductFlag,",
+						"          promptDeliveryFlag,",
+						"          keywordClickCount,",
+						"          specialShipmentFlag",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelectRequiredColumns",
+						"SelectRequiredColumns sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> MoveToPrep"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_extracted_data_sql')]",
+				"[concat(variables('factoryId'), '/datasets/DS_extracted_data_to_prep_sql')]"
 			]
 		}
 	]
