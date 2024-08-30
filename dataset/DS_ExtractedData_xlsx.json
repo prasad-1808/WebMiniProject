@@ -5,6 +5,9 @@
 			"referenceName": "LS_extracted_data_xlsx",
 			"type": "LinkedServiceReference"
 		},
+		"folder": {
+			"name": "misumi"
+		},
 		"annotations": [],
 		"type": "Excel",
 		"typeProperties": {

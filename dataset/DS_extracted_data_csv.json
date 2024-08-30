@@ -5,6 +5,9 @@
 			"referenceName": "LS_extracted_data_csv",
 			"type": "LinkedServiceReference"
 		},
+		"folder": {
+			"name": "misumi"
+		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {

@@ -1,0 +1,140 @@
+{
+	"name": "DS_extractedData_report",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_extracted_data_sql",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "misumi"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "category",
+				"type": "nvarchar"
+			},
+			{
+				"name": "subCategory",
+				"type": "nvarchar"
+			},
+			{
+				"name": "subCategory1",
+				"type": "nvarchar"
+			},
+			{
+				"name": "departmentCode",
+				"type": "nvarchar"
+			},
+			{
+				"name": "categoryCode",
+				"type": "nvarchar"
+			},
+			{
+				"name": "categoryName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "searchCategoryCode",
+				"type": "nvarchar"
+			},
+			{
+				"name": "seriesCode",
+				"type": "nvarchar"
+			},
+			{
+				"name": "seriesName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "brandCode",
+				"type": "nvarchar"
+			},
+			{
+				"name": "brandUrlCode",
+				"type": "nvarchar"
+			},
+			{
+				"name": "brandName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "seriesStatus",
+				"type": "nvarchar"
+			},
+			{
+				"name": "minStandardDaysToShip",
+				"type": "nvarchar"
+			},
+			{
+				"name": "maxStandardDaysToShip",
+				"type": "nvarchar"
+			},
+			{
+				"name": "minPricePerPiece",
+				"type": "nvarchar"
+			},
+			{
+				"name": "maxPricePerPiece",
+				"type": "nvarchar"
+			},
+			{
+				"name": "directCartType",
+				"type": "nvarchar"
+			},
+			{
+				"name": "priceCheckLessFlag",
+				"type": "nvarchar"
+			},
+			{
+				"name": "minStandardUnitPrice",
+				"type": "nvarchar"
+			},
+			{
+				"name": "maxStandardUnitPrice",
+				"type": "nvarchar"
+			},
+			{
+				"name": "recommendFlag",
+				"type": "nvarchar"
+			},
+			{
+				"name": "volumeDiscountFlag",
+				"type": "nvarchar"
+			},
+			{
+				"name": "cValueFlag",
+				"type": "nvarchar"
+			},
+			{
+				"name": "stockItemFlag",
+				"type": "nvarchar"
+			},
+			{
+				"name": "displayStandardPriceFlag",
+				"type": "nvarchar"
+			},
+			{
+				"name": "discontinuedProductFlag",
+				"type": "nvarchar"
+			},
+			{
+				"name": "promptDeliveryFlag",
+				"type": "nvarchar"
+			},
+			{
+				"name": "keywordClickCount",
+				"type": "nvarchar"
+			},
+			{
+				"name": "specialShipmentFlag",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "report",
+			"table": "products"
+		}
+	}
+}

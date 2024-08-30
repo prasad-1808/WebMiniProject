@@ -27,6 +27,9 @@
 				}
 			}
 		],
+		"folder": {
+			"name": "Task1"
+		},
 		"annotations": []
 	}
 }

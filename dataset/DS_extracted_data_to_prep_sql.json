@@ -5,12 +5,15 @@
 			"referenceName": "LS_prep_extracted_data",
 			"type": "LinkedServiceReference"
 		},
+		"folder": {
+			"name": "SQL"
+		},
 		"annotations": [],
 		"type": "AzureSqlTable",
 		"schema": [],
 		"typeProperties": {
 			"schema": "prep",
-			"table": "data"
+			"table": "products"
 		}
 	}
 }
